@@ -11,17 +11,33 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 
+import com.android.volley.Response;
+import com.android.volley.VolleyError;
 import com.android.volley.toolbox.NetworkImageView;
 import com.happyshop.R;
+import com.happyshop.adapter.CategorListAdapter;
+import com.happyshop.helper.Commons;
+import com.happyshop.helper.NetworkHelper;
 import com.happyshop.helper.VolleyHelper;
 import com.happyshop.model.CategoryModel;
+
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 /**
  * Created by terril1 on 21/05/16.
  */
 public class CategoryDetailFragment extends Fragment {
+
+    private NetworkImageView imvDataDetail;
+    private TextView lblTitleDetail;
+    private TextView lblPricingDetail;
+    private TextView lblStatus, lblDesc;
+    private ProgressBar progressBar;
 
     @Nullable
     @Override
@@ -33,21 +49,60 @@ public class CategoryDetailFragment extends Fragment {
     public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
-        NetworkImageView imvDataDetail = (NetworkImageView) view.findViewById(R.id.imvDataDetail);
-        TextView lblTitleDetail = (TextView) view.findViewById(R.id.lblTitleDetail);
-        TextView lblPricingDetail = (TextView) view.findViewById(R.id.lblPricingDetail);
-        TextView lblStatus = (TextView) view.findViewById(R.id.lblStatus);
+        imvDataDetail = (NetworkImageView) view.findViewById(R.id.imvDataDetail);
+        lblTitleDetail = (TextView) view.findViewById(R.id.lblTitleDetail);
+        lblPricingDetail = (TextView) view.findViewById(R.id.lblPricingDetail);
+        lblStatus = (TextView) view.findViewById(R.id.lblStatusDetail);
+        lblDesc = (TextView) view.findViewById(R.id.lblDesc);
+
+        progressBar = (ProgressBar) view.findViewById(R.id.progressDetail);
 
         Bundle bundle = getArguments();
         CategoryModel modelData = bundle.getParcelable("categoryData");
 
-        imvDataDetail.setImageUrl(modelData.getImgUrl() , new VolleyHelper(getActivity()).getImageLoader());
-        lblTitleDetail.setText(modelData.getName());
-        lblPricingDetail.setText(modelData.getPrice());
+//        imvDataDetail.setImageUrl(modelData.getImgUrl(), new VolleyHelper(getActivity()).getImageLoader());
+//        lblTitleDetail.setText(modelData.getName());
+//        lblPricingDetail.setText(modelData.getPrice());
+//
+//        if (!modelData.getUnderSale()) {
+//            lblStatus.setVisibility(View.INVISIBLE);
+//        }
 
-        if(!modelData.getUnderSale()){
-            lblStatus.setVisibility(View.INVISIBLE);
-        }
+        if (NetworkHelper.isOnline(getActivity()))
+            callWebserviceToLoadCategoryDetail(modelData.getId());
+        else
+            NetworkHelper.noNetworkToast(getActivity());
+    }
+
+    void callWebserviceToLoadCategoryDetail(String id) {
+        //  Log.e("TAG", page + "");
+
+        new VolleyHelper(getActivity()).get("products/" + id + ".json", null, new Response.Listener<JSONObject>() {
+            @Override
+            public void onResponse(JSONObject response) {
+                progressBar.setVisibility(View.INVISIBLE);
+                try {
+                    JSONObject object = response.getJSONObject("product");
+                    lblTitleDetail.setText(object.getString("name"));
+                    lblPricingDetail.setText(Commons.PRICING_INITIALS + " " + object.getString("price"));
+                    lblDesc.setText(object.getString("description"));
+                    imvDataDetail.setImageUrl(object.getString("img_url"), new VolleyHelper(getActivity()).getImageLoader());
+                    if (object.getBoolean("under_sale")) {
+                        lblStatus.setVisibility(View.VISIBLE);
+                    }
+
+                } catch (JSONException e) {
+                    e.printStackTrace();
+
+                }
+
+            }
+        }, new Response.ErrorListener() {
+            @Override
+            public void onErrorResponse(VolleyError error) {
+                error.printStackTrace();
+            }
+        });
     }
 
 //    @Override

@@ -6,4 +6,5 @@ package com.happyshop.helper;
 public class Commons {
 
     public static  String BASE_URL = "http://sephora-mobile-takehome-apple.herokuapp.com/api/v1";
+    public static String PRICING_INITIALS = "S$";
 }

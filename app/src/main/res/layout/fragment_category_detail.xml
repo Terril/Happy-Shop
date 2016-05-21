@@ -11,6 +11,12 @@
         android:layout_height="0dp"
         android:layout_weight=".5"></com.android.volley.toolbox.NetworkImageView>
 
+    <ProgressBar
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/progressDetail"
+        android:layout_gravity="center_horizontal" />
+
     <TextView
         android:id="@+id/lblTitleDetail"
         android:layout_width="match_parent"
@@ -42,7 +48,7 @@
             android:text="Description goes here" />
 
         <TextView
-            android:id="@+id/lblStatus"
+            android:id="@+id/lblStatusDetail"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_alignParentRight="true"
@@ -53,7 +59,8 @@
             android:maxLines="1"
             android:padding="@dimen/space_five"
             android:text="@string/on_sale"
-            android:textColor="@android:color/holo_red_light" />
+            android:textColor="@android:color/holo_red_light"
+            android:visibility="invisible" />
     </LinearLayout>
 
 
@@ -66,7 +73,9 @@
         android:textColor="@android:color/white" />
 
     <TextView
+        android:id="@+id/lblDesc"
         android:layout_width="match_parent"
         android:layout_height="0dp"
+        android:layout_marginTop="@dimen/space_five"
         android:layout_weight=".30" />
 </LinearLayout>

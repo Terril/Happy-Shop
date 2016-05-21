@@ -15,7 +15,9 @@ import com.android.volley.VolleyError;
 import com.happyshop.R;
 import com.happyshop.adapter.CategorListAdapter;
 import com.happyshop.fragment.CategoryDetailFragment;
+import com.happyshop.helper.Commons;
 import com.happyshop.helper.EndlessRecyclerViewScrollListener;
+import com.happyshop.helper.NetworkHelper;
 import com.happyshop.helper.RecyclerItemClickListener;
 import com.happyshop.helper.VolleyHelper;
 import com.happyshop.model.CategoryModel;
@@ -33,7 +35,6 @@ public class CategoryListActivity extends BaseActivity {
 
 
     ArrayList<CategoryModel> arrayList;
-    private String PRICING_INITIALS = "S$";
     ProgressBar progressBar;
     private RecyclerView category_recycler_view;
     private CategorListAdapter adapter;
@@ -51,20 +52,25 @@ public class CategoryListActivity extends BaseActivity {
 
         category_recycler_view = (RecyclerView) findViewById(R.id.category_recycler_view);
         progressBar = (ProgressBar) findViewById(R.id.progressBar);
-        emptyView = (TextView) findViewById(R.id.lblEmptyView) ;
+        emptyView = (TextView) findViewById(R.id.lblEmptyView);
 
         category_recycler_view.setHasFixedSize(true);
         category_recycler_view.setLayoutManager(gridLayout);
 
         arrayList = new ArrayList<>();
-
-        int page = 1;
-        callWebserviceToLoadCategory(page, categoryname);
-
+        if (NetworkHelper.isOnline(this)) {
+            int page = 1;
+            callWebserviceToLoadCategory(page, categoryname);
+        } else {
+            NetworkHelper.noNetworkToast(this);
+        }
         category_recycler_view.addOnScrollListener(new EndlessRecyclerViewScrollListener(gridLayout) {
             @Override
             public void onLoadMore(int page, int totalItemsCount) {
-                callWebserviceToLoadMoreCategory(page + 1, categoryname);
+                if (NetworkHelper.isOnline(CategoryListActivity.this))
+                    callWebserviceToLoadMoreCategory(page + 1, categoryname);
+                else
+                    NetworkHelper.noNetworkToast(CategoryListActivity.this);
             }
         });
 
@@ -75,14 +81,14 @@ public class CategoryListActivity extends BaseActivity {
                         Bundle bundle = new Bundle();
                         bundle.putParcelable("categoryData", arrayList.get(position));
 
-                        fragmentCall(new CategoryDetailFragment(), bundle , R.id.containerFrame);
+                        fragmentCall(new CategoryDetailFragment(), bundle, R.id.containerFrame);
                     }
                 })
         );
     }
 
     void callWebserviceToLoadCategory(final int page, final String category) {
-        Log.e("TAG", page + "");
+        //  Log.e("TAG", page + "");
 
         new VolleyHelper(this).get("products.json?category=" + category.trim() + "&page=" + page, null, new Response.Listener<JSONObject>() {
             @Override
@@ -97,11 +103,10 @@ public class CategoryListActivity extends BaseActivity {
                         model.setId(object.getString("id"));
                         model.setName(object.getString("name"));
                         model.setCategory(object.getString("category"));
-                        model.setPrice(PRICING_INITIALS + " " + object.getString("price"));
+                        model.setPrice(Commons.PRICING_INITIALS + " " + object.getString("price"));
                         model.setImgUrl(object.getString("img_url"));
                         model.setUnderSale(object.getBoolean("under_sale"));
 
-                        // arrayList.add(model);
                         arrayList.add(model);
                     }
 
@@ -111,20 +116,11 @@ public class CategoryListActivity extends BaseActivity {
                     if (arrayList.isEmpty()) {
                         category_recycler_view.setVisibility(View.GONE);
                         emptyView.setVisibility(View.VISIBLE);
-                    }
-                    else {
+                    } else {
                         category_recycler_view.setVisibility(View.VISIBLE);
                         emptyView.setVisibility(View.GONE);
                     }
 
-                    //     arrayList.remove(arrayList.size() - 1);
-                    //   adapter.notifyItemRemoved(arrayList.size());
-                    // For efficiency purposes, notify the adapter of only the elements that got changed
-                    // curSize will equal to the index of the first element inserted because the list is 0-indexed
-                   // int curSize = adapter.getItemCount();
-
-                 //   Log.e("TAG", curSize + "");
-                    //  adapter.notifyItemRangeInserted(curSize, arrayList.size() - 1);
                 } catch (JSONException e) {
                     e.printStackTrace();
 
@@ -140,7 +136,7 @@ public class CategoryListActivity extends BaseActivity {
     }
 
     void callWebserviceToLoadMoreCategory(final int page, final String category) {
-        Log.e("TAG", page + " Load waala screen hai ");
+//        Log.e("TAG", page + " Load waala screen hai ");
 
         new VolleyHelper(this).get("products.json?category=" + category + "&page=" + page, null, new Response.Listener<JSONObject>() {
             @Override
@@ -155,23 +151,13 @@ public class CategoryListActivity extends BaseActivity {
                         model.setId(object.getString("id"));
                         model.setName(object.getString("name"));
                         model.setCategory(object.getString("category"));
-                        model.setPrice(PRICING_INITIALS + " " + object.getString("price"));
+                        model.setPrice(Commons.PRICING_INITIALS + " " + object.getString("price"));
                         model.setImgUrl(object.getString("img_url"));
                         model.setUnderSale(object.getBoolean("under_sale"));
 
-                        // arrayList.add(model);
                         arrayList.add(model);
                     }
 
-
-                    // arrayList.remove(arrayList.size() - 1);
-                    //adapter.notifyItemRemoved(arrayList.size());
-                    // For efficiency purposes, notify the adapter of only the elements that got changed
-                    // curSize will equal to the index of the first element inserted because the list is 0-indexed
-                    int curSize = adapter.getItemCount();
-
-                    Log.e("TAG", curSize + "");
-                    //  adapter.notifyItemRangeInserted(curSize, arrayList.size() - 1);
                     adapter.notifyItemRangeChanged(0, adapter.getItemCount());
                 } catch (JSONException e) {
                     e.printStackTrace();
