@@ -36,6 +36,7 @@ public class CategoryDetailFragment extends Fragment {
         NetworkImageView imvDataDetail = (NetworkImageView) view.findViewById(R.id.imvDataDetail);
         TextView lblTitleDetail = (TextView) view.findViewById(R.id.lblTitleDetail);
         TextView lblPricingDetail = (TextView) view.findViewById(R.id.lblPricingDetail);
+        TextView lblStatus = (TextView) view.findViewById(R.id.lblStatus);
 
         Bundle bundle = getArguments();
         CategoryModel modelData = bundle.getParcelable("categoryData");
@@ -43,6 +44,10 @@ public class CategoryDetailFragment extends Fragment {
         imvDataDetail.setImageUrl(modelData.getImgUrl() , new VolleyHelper(getActivity()).getImageLoader());
         lblTitleDetail.setText(modelData.getName());
         lblPricingDetail.setText(modelData.getPrice());
+
+        if(!modelData.getUnderSale()){
+            lblStatus.setVisibility(View.INVISIBLE);
+        }
     }
 
 //    @Override
