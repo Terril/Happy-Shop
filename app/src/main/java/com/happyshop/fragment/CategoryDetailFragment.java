@@ -1,15 +1,18 @@
 package com.happyshop.fragment;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v4.view.MenuItemCompat;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
@@ -18,6 +21,7 @@ import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.NetworkImageView;
 import com.happyshop.R;
+import com.happyshop.activity.ShowCartItemsActivity;
 import com.happyshop.adapter.CategorListAdapter;
 import com.happyshop.helper.Commons;
 import com.happyshop.helper.NetworkHelper;
@@ -31,13 +35,14 @@ import org.json.JSONObject;
 /**
  * Created by terril1 on 21/05/16.
  */
-public class CategoryDetailFragment extends Fragment {
+public class CategoryDetailFragment extends Fragment implements View.OnClickListener {
 
     private NetworkImageView imvDataDetail;
     private TextView lblTitleDetail;
     private TextView lblPricingDetail;
     private TextView lblStatus, lblDesc;
     private ProgressBar progressBar;
+    private String productId;
 
     @Nullable
     @Override
@@ -55,11 +60,15 @@ public class CategoryDetailFragment extends Fragment {
         lblStatus = (TextView) view.findViewById(R.id.lblStatusDetail);
         lblDesc = (TextView) view.findViewById(R.id.lblDesc);
 
+        Button btnAddToCart = (Button) view.findViewById(R.id.btnAddToCart);
+        btnAddToCart.setOnClickListener(this);
+
         progressBar = (ProgressBar) view.findViewById(R.id.progressDetail);
 
         Bundle bundle = getArguments();
         CategoryModel modelData = bundle.getParcelable("categoryData");
 
+        productId = modelData.getId();
 //        imvDataDetail.setImageUrl(modelData.getImgUrl(), new VolleyHelper(getActivity()).getImageLoader());
 //        lblTitleDetail.setText(modelData.getName());
 //        lblPricingDetail.setText(modelData.getPrice());
@@ -103,6 +112,52 @@ public class CategoryDetailFragment extends Fragment {
                 error.printStackTrace();
             }
         });
+    }
+
+    @Override
+    public void onClick(View v) {
+
+        callWebseriveForAddToCart();
+
+    }
+
+    private void callWebseriveForAddToCart() {
+        JSONObject object = new JSONObject();
+        try {
+            object.put("api_key", "afa3f22f9d8a67e60b08aa95748df255");
+            JSONObject jsonObject = new JSONObject();
+            jsonObject.put("product_id", productId);
+            jsonObject.put("quantity", "1");
+
+            JSONArray jsonArray = new JSONArray();
+            jsonArray.put(jsonObject);
+
+            object.put("line_items", jsonArray);
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+        new VolleyHelper(getActivity()).post("carts.json", object, new Response.Listener<JSONObject>() {
+            @Override
+            public void onResponse(JSONObject response) {
+
+                try {
+                    String cartId = response.getString("cart_id");
+
+                    Intent intent = new Intent(getActivity(), ShowCartItemsActivity.class);
+                    intent.putExtra("cartId", cartId);
+                    startActivity(intent);
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                // Log.e("TAG", response.toString());
+            }
+        }, new Response.ErrorListener() {
+            @Override
+            public void onErrorResponse(VolleyError error) {
+
+            }
+        });
+
     }
 
 //    @Override

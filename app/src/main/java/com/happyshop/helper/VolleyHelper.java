@@ -76,12 +76,12 @@ public class VolleyHelper {
         mRequestQueue.add(objRequest);
     }
 
-    public void post(String method, HashMap<String, String> map,
-                     Response.Listener<String> listener, Response.ErrorListener errorListener) {
+    public void post(String method,JSONObject jsonRequest,
+                     Response.Listener<JSONObject> listener, Response.ErrorListener errorListener) {
 
-        //JsonObjectRequest objRequest = new JsonObjectRequest(Request.Method.POST, contructUrl(method), jsonRequest, listener, errorListener);
-        StringRequest stringRequest = new StringRequest(Request.Method.POST, contructUrl(method), map, listener, errorListener);
-        mRequestQueue.add(stringRequest);
+        JsonObjectRequest objRequest = new JsonObjectRequest(Request.Method.POST, contructUrl(method), jsonRequest, listener, errorListener);
+      //  StringRequest stringRequest = new StringRequest(Request.Method.POST, contructUrl(method), map, listener, errorListener);
+        mRequestQueue.add(objRequest);
     }
 
     public void delete(String method, JSONObject jsonRequest,
